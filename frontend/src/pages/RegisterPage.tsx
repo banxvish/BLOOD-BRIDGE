@@ -7,12 +7,11 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import Navbar from "@/components/Navbar";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 
 const bloodTypes = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
 
 const RegisterPage = () => {
-  const { toast } = useToast();
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -47,10 +46,8 @@ const RegisterPage = () => {
           lat = parseFloat(geoData[0].lat);
           lng = parseFloat(geoData[0].lon);
         } else {
-          toast({
-            title: "Location Not Found",
-            description: "We couldn't exact map coordinates for this address, but your profile will still be saved.",
-            variant: "default",
+          toast.error("Location Not Found", {
+            description: "We couldn't exactly map coordinates for this address, but your profile will still be saved.",
           });
         }
       }
@@ -75,15 +72,12 @@ const RegisterPage = () => {
       if (!response.ok) throw new Error("Registration failed");
 
       setSubmitted(true);
-      toast({
-        title: "Registration Successful!",
+      toast.success("Registration Successful!", {
         description: "Thank you for registering as a blood donor.",
       });
     } catch (error) {
-      toast({
-        title: "Error",
+      toast.error("Error", {
         description: "Failed to register donor. Please try again.",
-        variant: "destructive",
       });
     } finally {
       setIsSubmitting(false);

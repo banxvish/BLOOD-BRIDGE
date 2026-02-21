@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
 import { Search, MapPin, Phone, Clock, User, Droplet, Map as MapIcon, List, Navigation } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -76,19 +77,27 @@ const SearchPage = () => {
             .then(data => {
               const city = data.address?.city || data.address?.town || data.address?.village || data.address?.state_district || data.address?.state || '';
               const area = data.address?.suburb || data.address?.neighbourhood || '';
-              setUserCity(area ? `${area}, ${city}` : city);
+              const detectedLoc = area ? `${area}, ${city}` : city;
+              setUserCity(detectedLoc);
+              toast.success("Location Detected", {
+                description: `We've found you near ${detectedLoc}`,
+              });
             })
-            .catch(() => { });
+            .catch(() => {
+              toast.error("Geocoding Failed", { description: "We got your coordinates but couldn't resolve the city name." });
+            });
           setIsLocating(false);
         },
         (error) => {
           console.error("Error getting location:", error);
-          alert("Couldn't get your location. Please check your permissions.");
+          toast.error("Location Access Denied", {
+            description: "Couldn't get your location. Please check browser permissions.",
+          });
           setIsLocating(false);
         }
       );
     } else {
-      alert("Geolocation is not supported by your browser.");
+      toast.error("Unsupported", { description: "Geolocation is not supported by your browser." });
       setIsLocating(false);
     }
   };
@@ -188,9 +197,19 @@ const SearchPage = () => {
 
             {/* Results */}
             {isLoading ? (
-              <div className="text-center py-16">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-                <h3 className="font-heading text-xl font-semibold mb-2">Loading donors...</h3>
+              <div className={viewMode === "map" ? "flex gap-4" : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"}>
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} className="glass-card rounded-xl p-5 animate-pulse min-h-[160px] flex flex-col justify-between">
+                    <div className="flex items-start gap-4">
+                      <div className="w-10 h-10 rounded-full bg-white/5" />
+                      <div className="space-y-2 flex-1">
+                        <div className="h-4 bg-white/10 rounded w-1/2" />
+                        <div className="h-3 bg-white/5 rounded w-1/3" />
+                      </div>
+                    </div>
+                    <div className="h-9 bg-white/5 rounded w-full mt-4" />
+                  </div>
+                ))}
               </div>
             ) : isError ? (
               <div className="text-center py-16 text-destructive">
@@ -275,7 +294,7 @@ const SearchPage = () => {
                       </div>
                       <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
                         <Clock className="w-4 h-4" />
-                        Last: {donor.lastDonation ? new Date(donor.lastDonation).toLocaleDateString() : 'Never'}
+                        Last: {donor.lastDonation ? new Date(donor.lastDonation).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Never'}
                       </div>
                     </div>
 
@@ -315,6 +334,7 @@ const SearchPage = () => {
         seekerLocation={userCity}
         searchedBloodType={selectedBloodType}
         defaultUrgency={urgency}
+        userCoords={userLocation}
       />
     </>
   );
