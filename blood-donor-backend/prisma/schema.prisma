@@ -1,0 +1,35 @@
+// prisma/schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Donor {
+  id            String    @id @default(uuid())
+  name          String
+  bloodType     String
+  contact       String
+  city          String
+  latitude      Float?
+  longitude     Float?
+  age           Int
+  lastDonation  DateTime?
+  available     Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model BloodRequest {
+  id            String    @id @default(uuid())
+  requester     String
+  bloodType     String
+  city          String
+  urgency       String
+  contact       String
+  fulfilled     Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+}
