@@ -15,7 +15,7 @@ const bloodTypes = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
 // Fetch donors from the backend
 const fetchDonors = async ({ queryKey }: any) => {
   const [_key, lat, lng] = queryKey;
-  let url = "http://localhost:3000/api/donors";
+  let url = "https://blood-bridge-production.up.railway.app/api/donors";
   if (lat && lng) {
     url += `?lat=${lat}&lng=${lng}`;
   }
