@@ -63,7 +63,7 @@ const RegisterPage = () => {
     };
 
     try {
-      const response = await fetch("http://localhost:3000/api/donors", {
+      const response = await fetch("https://blood-bridge-production.up.railway.app/api/donors", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
