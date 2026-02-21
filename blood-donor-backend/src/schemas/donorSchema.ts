@@ -6,6 +6,7 @@ export const donorSchema = z.object({
     bloodType: z.string().min(1, 'Blood type is required'),
     contact: z.string().min(1, 'Contact number is required'),
     city: z.string().min(1, 'City is required'),
+    address: z.string().optional(),
     latitude: z.number().optional(),
     longitude: z.number().optional(),
     age: z.number().min(18, 'Age must be at least 18').max(65, 'Age must be no more than 65'),

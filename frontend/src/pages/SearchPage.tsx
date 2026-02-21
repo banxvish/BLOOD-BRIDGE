@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
-import { Search, MapPin, Phone, Clock, User, Droplet } from "lucide-react";
+import { Search, MapPin, Phone, Clock, User, Droplet, Map as MapIcon, List, Navigation } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { MapTab } from "@/components/MapTab";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
@@ -11,8 +12,13 @@ import Navbar from "@/components/Navbar";
 const bloodTypes = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
 
 // Fetch donors from the backend
-const fetchDonors = async () => {
-  const response = await fetch("http://localhost:3000/api/donors");
+const fetchDonors = async ({ queryKey }: any) => {
+  const [_key, lat, lng] = queryKey;
+  let url = "http://localhost:3000/api/donors";
+  if (lat && lng) {
+    url += `?lat=${lat}&lng=${lng}`;
+  }
+  const response = await fetch(url);
   if (!response.ok) {
     throw new Error("Failed to fetch donors");
   }
@@ -23,11 +29,37 @@ const SearchPage = () => {
   const [selectedBloodType, setSelectedBloodType] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState("");
   const [urgency, setUrgency] = useState<string>("");
+  const [viewMode, setViewMode] = useState<"list" | "map">("list");
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [isLocating, setIsLocating] = useState(false);
 
   const { data: donors = [], isLoading, isError } = useQuery({
-    queryKey: ["donors"],
+    queryKey: ["donors", userLocation?.lat, userLocation?.lng],
     queryFn: fetchDonors,
   });
+
+  const handleGeolocation = () => {
+    setIsLocating(true);
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setUserLocation({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          });
+          setIsLocating(false);
+        },
+        (error) => {
+          console.error("Error getting location:", error);
+          alert("Couldn't get your location. Please check your permissions.");
+          setIsLocating(false);
+        }
+      );
+    } else {
+      alert("Geolocation is not supported by your browser.");
+      setIsLocating(false);
+    }
+  };
 
   const filteredDonors = donors.filter((donor: any) => {
     if (selectedBloodType && selectedBloodType !== "all" && donor.bloodType !== selectedBloodType) return false;
@@ -91,6 +123,37 @@ const SearchPage = () => {
                 Search Donors
               </Button>
             </div>
+
+            <div className="flex justify-between items-center mt-6 pt-6 border-t border-border">
+              <Button
+                variant={userLocation ? "default" : "outline"}
+                onClick={handleGeolocation}
+                disabled={isLocating}
+                className={userLocation ? "bg-primary text-primary-foreground" : ""}
+              >
+                <Navigation className={`w-4 h-4 mr-2 ${isLocating ? "animate-spin" : ""}`} />
+                {isLocating ? "Locating..." : userLocation ? "Using Your Location" : "Use My Location"}
+              </Button>
+
+              <div className="flex bg-muted p-1 rounded-lg">
+                <Button
+                  variant={viewMode === "list" ? "default" : "ghost"}
+                  size="sm"
+                  onClick={() => setViewMode("list")}
+                  className="rounded-md"
+                >
+                  <List className="w-4 h-4 mr-2" /> List
+                </Button>
+                <Button
+                  variant={viewMode === "map" ? "default" : "ghost"}
+                  size="sm"
+                  onClick={() => setViewMode("map")}
+                  className="rounded-md"
+                >
+                  <MapIcon className="w-4 h-4 mr-2" /> Map
+                </Button>
+              </div>
+            </div>
           </motion.div>
 
           {/* Results */}
@@ -104,9 +167,11 @@ const SearchPage = () => {
               <h3 className="font-heading text-xl font-semibold mb-2">Failed to load donors</h3>
               <p>Please check if the backend server is running on port 3000.</p>
             </div>
+          ) : viewMode === "map" ? (
+            <MapTab donors={filteredDonors} userLocation={userLocation} />
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredDonors.map((donor, index) => (
+              {filteredDonors.map((donor: any, index: number) => (
                 <motion.div
                   key={donor.id}
                   initial={{ opacity: 0, y: 20 }}

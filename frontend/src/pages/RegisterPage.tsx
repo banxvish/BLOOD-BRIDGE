@@ -14,6 +14,7 @@ const bloodTypes = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
 const RegisterPage = () => {
   const { toast } = useToast();
   const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -23,16 +24,52 @@ const RegisterPage = () => {
       bloodType: formData.get("bloodType") as string,
       contact: formData.get("contact") as string,
       city: formData.get("city") as string,
+      address: formData.get("address") as string || undefined,
       age: parseInt(formData.get("age") as string, 10),
       lastDonation: formData.get("lastDonation") ? new Date(formData.get("lastDonation") as string).toISOString() : undefined,
       available: formData.get("available") !== null, // checkbox returns "on" if checked
+    };
+
+    setIsSubmitting(true);
+
+    let lat = undefined;
+    let lng = undefined;
+
+    // Geocode the address + city to get lat/long
+    try {
+      const searchAddress = `${data.address || ''} ${data.city}`.trim();
+      if (searchAddress) {
+        const query = encodeURIComponent(searchAddress);
+        const geoRes = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${query}`);
+        const geoData = await geoRes.json();
+
+        if (geoData && geoData.length > 0) {
+          lat = parseFloat(geoData[0].lat);
+          lng = parseFloat(geoData[0].lon);
+        } else {
+          toast({
+            title: "Location Not Found",
+            description: "We couldn't exact map coordinates for this address, but your profile will still be saved.",
+            variant: "default",
+          });
+        }
+      }
+    } catch (error) {
+      console.error("Geocoding failed", error);
+    }
+
+    // Build final payload
+    const payload = {
+      ...data,
+      latitude: lat,
+      longitude: lng
     };
 
     try {
       const response = await fetch("http://localhost:3000/api/donors", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+        body: JSON.stringify(payload),
       });
 
       if (!response.ok) throw new Error("Registration failed");
@@ -48,6 +85,8 @@ const RegisterPage = () => {
         description: "Failed to register donor. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -130,6 +169,13 @@ const RegisterPage = () => {
                 <Input name="city" placeholder="Enter your city" className="bg-background border-border" required />
               </div>
 
+              <div className="space-y-2 col-span-1 md:col-span-2">
+                <Label className="flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-primary" /> Full Address
+                </Label>
+                <Input name="address" placeholder="e.g. 123 Health Street, Near Main Hospital" className="bg-background border-border" />
+              </div>
+
               <div className="space-y-2">
                 <Label className="flex items-center gap-2">
                   <Calendar className="w-4 h-4 text-primary" /> Last Donation Date
@@ -151,8 +197,8 @@ const RegisterPage = () => {
               <Switch name="available" defaultChecked />
             </div>
 
-            <Button type="submit" variant="hero" size="lg" className="w-full text-base py-6">
-              Register as Donor
+            <Button type="submit" variant="hero" size="lg" className="w-full text-base py-6" disabled={isSubmitting}>
+              {isSubmitting ? "Registering..." : "Register as Donor"}
             </Button>
           </motion.form>
         </div>

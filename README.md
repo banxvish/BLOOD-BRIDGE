@@ -518,6 +518,6 @@ VITE_USE_MOCK_DATA=true
 
 This project is licensed under the **MIT License**.
 
----
+
 
 > Built with ❤️ to connect donors and save lives. Every second counts.

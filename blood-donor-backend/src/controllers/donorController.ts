@@ -25,18 +25,50 @@ export const registerDonor = async (req: Request, res: Response): Promise<void> 
     }
 };
 
+// Helper function to calculate distance in km using Haversine formula
+const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+    const R = 6371; // Radius of the earth in km
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c; // Distance in km
+};
+
 export const getDonors = async (req: Request, res: Response): Promise<void> => {
-    const { bloodType, city, available } = req.query;
+    const { bloodType, city, available, lat, lng } = req.query;
 
     try {
-        const donors = await prisma.donor.findMany({
+        let donors = await prisma.donor.findMany({
             where: {
                 ...(bloodType ? { bloodType: String(bloodType) } : {}),
                 ...(city ? { city: { contains: String(city), mode: 'insensitive' } } : {}),
                 ...(available !== undefined ? { available: available === 'true' } : {}),
             },
         });
-        res.json(donors);
+
+        // Compute distance and sort if lat & lng are provided
+        if (lat && lng) {
+            const userLat = parseFloat(String(lat));
+            const userLng = parseFloat(String(lng));
+
+            const donorsWithDistance = donors.map(donor => {
+                if (donor.latitude && donor.longitude) {
+                    const distKm = calculateDistance(userLat, userLng, donor.latitude, donor.longitude);
+                    return { ...donor, distanceKm: distKm, distance: `${distKm.toFixed(1)} km` };
+                }
+                return { ...donor, distanceKm: Infinity, distance: null };
+            });
+
+            donorsWithDistance.sort((a, b) => a.distanceKm - b.distanceKm);
+
+            res.json(donorsWithDistance);
+        } else {
+            res.json(donors);
+        }
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Error fetching donors' });
