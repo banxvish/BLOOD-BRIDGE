@@ -4,7 +4,7 @@ import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
-import { MessageCircle, Phone } from 'lucide-react';
+import { Eye } from 'lucide-react';
 
 // Custom RED marker for user location
 const userIcon = new L.DivIcon({
@@ -47,25 +47,17 @@ interface Donor {
 interface MapTabProps {
     donors: Donor[];
     userLocation?: { lat: number; lng: number } | null;
+    onDonorSelect?: (donor: Donor) => void;
 }
 
-export const MapTab: React.FC<MapTabProps> = ({ donors, userLocation }) => {
+export const MapTab: React.FC<MapTabProps> = ({ donors, userLocation, onDonorSelect }) => {
     // Default center (India center roughly)
     const defaultCenter: [number, number] = [20.5937, 78.9629];
     const center = userLocation ? [userLocation.lat, userLocation.lng] as [number, number] : defaultCenter;
     const zoom = userLocation ? 12 : 5;
 
-    const handleContact = (phone: string) => {
-        window.location.href = `tel:${phone}`;
-    };
-
-    const handleWhatsApp = (phone: string) => {
-        const formattedPhone = phone.replace(/[^0-9]/g, '');
-        window.open(`https://wa.me/${formattedPhone}`, '_blank');
-    };
-
     return (
-        <div className="h-[600px] w-full rounded-xl overflow-hidden border border-border shadow-sm">
+        <div className="h-full w-full rounded-xl overflow-hidden border border-border shadow-sm">
             <MapContainer
                 center={center}
                 zoom={zoom}
@@ -91,42 +83,34 @@ export const MapTab: React.FC<MapTabProps> = ({ donors, userLocation }) => {
                         position={[donor.latitude!, donor.longitude!]}
                         icon={donorIcon}
                     >
-                        <Popup className="donor-popup min-w-[200px]">
-                            <div className="flex flex-col gap-2 p-1">
+                        <Popup className="donor-popup">
+                            <div className="flex flex-col gap-2 p-4 min-w-[220px]">
                                 <div className="flex justify-between items-start">
-                                    <h3 className="font-bold text-lg leading-none">{donor.name}</h3>
+                                    <h3 className="font-bold text-base leading-tight text-white">{donor.name}</h3>
                                     <Badge variant="destructive" className="ml-2 font-bold text-sm">
                                         {donor.bloodType}
                                     </Badge>
                                 </div>
 
-                                <div className="text-sm text-muted-foreground mt-1">
-                                    📍 {donor.address ? `${donor.address}, ` : ""}{donor.city} {donor.distance && `(${donor.distance})`}
+                                <div className="text-sm text-gray-400 mt-1">
+                                    📍 {donor.address ? `${donor.address}, ` : ""}{donor.city}
                                 </div>
 
-                                <div className="flex gap-2 mt-2">
-                                    <Badge variant={donor.available ? "default" : "secondary"} className="text-xs">
+                                <div className="flex gap-2 mt-1">
+                                    <Badge variant={donor.available ? "default" : "secondary"} className={donor.available ? "bg-green-600/20 text-green-400 border-green-600/30 text-xs" : "text-xs"}>
                                         {donor.available ? "Available" : "Unavailable"}
                                     </Badge>
                                 </div>
 
-                                <div className="flex gap-2 mt-3 pt-3 border-t">
+                                <div className="mt-3 pt-3 border-t border-white/10">
                                     <Button
                                         size="sm"
-                                        variant="outline"
-                                        className="flex-1 h-9 bg-green-50 text-green-600 border-green-200 hover:bg-green-100 dark:bg-green-900/20 dark:border-green-800 dark:hover:bg-green-900/40"
-                                        onClick={() => handleWhatsApp(donor.contact)}
+                                        variant="hero"
+                                        className="w-full h-9"
+                                        onClick={() => onDonorSelect?.(donor)}
                                     >
-                                        <MessageCircle className="w-4 h-4 mr-2" />
-                                        Chat
-                                    </Button>
-                                    <Button
-                                        size="sm"
-                                        className="flex-1 h-9"
-                                        onClick={() => handleContact(donor.contact)}
-                                    >
-                                        <Phone className="w-4 h-4 mr-2" />
-                                        Call
+                                        <Eye className="w-4 h-4 mr-2" />
+                                        Show Details
                                     </Button>
                                 </div>
                             </div>
