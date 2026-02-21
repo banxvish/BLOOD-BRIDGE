@@ -51,16 +51,25 @@ The frontend is **fully integrated** with a live Node.js/Express backend utilizi
 - **Automatic Geocoding** — When a donor registers with an address/city, the app queries the OpenStreetMap Nominatim API to convert it into latitude/longitude, so the donor appears on the map automatically
 - **Distance Sorting** — Backend uses the Haversine formula to calculate and sort donors by proximity
 
-### 📋 Donor Detail Sheet
-- Premium **iPhone-style slide-up sheet** with spring animation
-- **Full-screen glassmorphic overlay** — completely covers the map when opened
-- Displays all donor details: name, blood type (large display), city, address, distance, age, last donation date, contact number
-- **WhatsApp** quick-action button for instant contact
+### 🚨 Emergency WhatsApp Integration
+- **Urgency Levels** — 3 distinct urgency levels (Critical, High, Normal) selected before contacting a donor.
+- **Pre-filled Context** — Auto-generates a pre-written WhatsApp message containing the exact blood type needed, the requester's actual reverse-geocoded location, and a tone matching the urgency.
+- **One-Tap Contact** — Directly opens WhatsApp Web/App ready to send the life-saving message.
+
+### 📋 Donor Detail Sheet & Eligibility
+- Premium **glassmorphic slide-up sheet** with smooth CSS transitions.
+- Displays all donor details: name, blood type (large display), distance, age, and last donation date.
+- **Eligibility Guidelines** — Dedicated section on the homepage detailing the 5 core requirements to donate blood (Age, Weight, Health, Interval, Tattoos/Piercings).
+
+### ✨ Premium UI / UX
+- **Dynamic Glassmorphism** — Hardware-accelerated CSS effects including floating background blur orbs, shimmer animations, and smooth diagonal hover shines on cards.
+- **Zero Jank** — Replaced heavy JS animations with native CSS transitions for buttery smooth interactions.
+- **Dark Theme** — Consistent, professional dark aesthetic optimized for readability and urgency.
 
 ### 📝 Donor Registration
-- Full registration form with fields: Name, Blood Group, Contact, City, Full Address, Age, Last Donation Date, Availability Toggle
-- Automatic geocoding on submit — donor coordinates are saved to the database
-- Form validation with Zod schema (backend)
+- Full registration form with fields: Name, Blood Group, Contact, City, Full Address, Age, Last Donation Date, Availability Toggle.
+- Automatic geocoding on submit — donor coordinates are saved to the database.
+- Form validation with Zod schema (backend).
 
 ### 🌱 Database Seeding
 - Included seed script (`prisma/seed.ts`) with **30 realistic donor profiles** across 20+ Indian cities
@@ -89,7 +98,8 @@ blood-bridge/
 │   │   ├── components/
 │   │   │   ├── Navbar.tsx         # Top navigation bar
 │   │   │   ├── HeroSection.tsx    # Landing page hero banner
-│   │   │   ├── FeaturesSection.tsx# Feature cards section
+│   │   │   ├── EligibilitySection.tsx# Blood donation eligibility guidelines
+│   │   │   ├── EducationalSection.tsx# Myths & Facts resources
 │   │   │   ├── MapTab.tsx         # Interactive Leaflet map component
 │   │   │   ├── DonorDetailSheet.tsx # Slide-up donor details panel
 │   │   │   └── ui/               # shadcn/ui primitives (40+ components)

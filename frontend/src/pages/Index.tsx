@@ -1,7 +1,7 @@
 import Navbar from "@/components/Navbar";
 import HeroSection from "@/components/HeroSection";
-import ProblemSection from "@/components/ProblemSection";
-import FeaturesSection from "@/components/FeaturesSection";
+import EligibilitySection from "@/components/EligibilitySection";
+import EducationalSection from "@/components/EducationalSection";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
@@ -13,8 +13,8 @@ const Index = () => {
     <div className="min-h-screen">
       <Navbar />
       <HeroSection />
-      <ProblemSection />
-      <FeaturesSection />
+      <EligibilitySection />
+      <EducationalSection />
 
       {/* CTA Section */}
       <section className="py-24 px-6">

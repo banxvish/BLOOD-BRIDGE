@@ -1,6 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { motion } from "framer-motion";
 import { Search, MapPin, Phone, Clock, User, Droplet, Map as MapIcon, List, Navigation } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MapTab } from "@/components/MapTab";
@@ -32,6 +31,7 @@ const SearchPage = () => {
   const [urgency, setUrgency] = useState<string>("");
   const [viewMode, setViewMode] = useState<"list" | "map">("list");
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [userCity, setUserCity] = useState<string>("");
   const [isLocating, setIsLocating] = useState(false);
   const [selectedDonor, setSelectedDonor] = useState<any>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
@@ -40,6 +40,26 @@ const SearchPage = () => {
     queryKey: ["donors", userLocation?.lat, userLocation?.lng],
     queryFn: fetchDonors,
   });
+
+  // Auto-detect user city on page load (silent — no alert on failure)
+  useEffect(() => {
+    if (userCity) return;
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          fetch(`https://nominatim.openstreetmap.org/reverse?lat=${position.coords.latitude}&lon=${position.coords.longitude}&format=json`)
+            .then(res => res.json())
+            .then(data => {
+              const city = data.address?.city || data.address?.town || data.address?.village || data.address?.state_district || data.address?.state || '';
+              const area = data.address?.suburb || data.address?.neighbourhood || '';
+              setUserCity(area ? `${area}, ${city}` : city);
+            })
+            .catch(() => { });
+        },
+        () => { } // silently ignore errors
+      );
+    }
+  }, []);
 
   const handleGeolocation = () => {
     setIsLocating(true);
@@ -50,6 +70,15 @@ const SearchPage = () => {
             lat: position.coords.latitude,
             lng: position.coords.longitude,
           });
+          // Reverse geocode to get city name
+          fetch(`https://nominatim.openstreetmap.org/reverse?lat=${position.coords.latitude}&lon=${position.coords.longitude}&format=json`)
+            .then(res => res.json())
+            .then(data => {
+              const city = data.address?.city || data.address?.town || data.address?.village || data.address?.state_district || data.address?.state || '';
+              const area = data.address?.suburb || data.address?.neighbourhood || '';
+              setUserCity(area ? `${area}, ${city}` : city);
+            })
+            .catch(() => { });
           setIsLocating(false);
         },
         (error) => {
@@ -76,16 +105,13 @@ const SearchPage = () => {
         <Navbar />
         <div className="pt-20 px-4 pb-4">
           <div className="container max-w-6xl mx-auto">
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+            <div>
               <h1 className="font-heading text-3xl md:text-4xl font-bold mb-1">Find Donors</h1>
               <p className="text-muted-foreground text-base mb-4">Search for compatible blood donors near you</p>
-            </motion.div>
+            </div>
 
             {/* Filters */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
+            <div
               className="glass-card rounded-xl p-4 mb-4"
             >
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -158,7 +184,7 @@ const SearchPage = () => {
                   </Button>
                 </div>
               </div>
-            </motion.div>
+            </div>
 
             {/* Results */}
             {isLoading ? (
@@ -221,12 +247,9 @@ const SearchPage = () => {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {filteredDonors.map((donor: any, index: number) => (
-                  <motion.div
+                  <div
                     key={donor.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.05 * index }}
-                    className="glass-card rounded-xl p-5 hover:glow-border transition-all duration-300"
+                    className="glass-card rounded-xl p-5 hover:glow-border transition-all duration-200"
                   >
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex items-center gap-3">
@@ -269,7 +292,7 @@ const SearchPage = () => {
                       <Phone className="w-4 h-4 mr-1" />
                       {donor.available ? "Contact Donor" : "Not Available"}
                     </Button>
-                  </motion.div>
+                  </div>
                 ))}
               </div>
             )}
@@ -289,6 +312,9 @@ const SearchPage = () => {
         donor={selectedDonor}
         isOpen={isSheetOpen}
         onClose={() => setIsSheetOpen(false)}
+        seekerLocation={userCity}
+        searchedBloodType={selectedBloodType}
+        defaultUrgency={urgency}
       />
     </>
   );
