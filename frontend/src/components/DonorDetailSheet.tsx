@@ -366,7 +366,7 @@ export const DonorDetailSheet: React.FC<DonorDetailSheetProps> = ({ donor, isOpe
                     </div>
 
                     {/* Live ETA & Routing Map */}
-                    {userCoords && donor.latitude && donor.longitude && (
+                    {donor.latitude && donor.longitude && (
                         <div className="mb-4 rounded-xl overflow-hidden border border-white/10 relative" style={{ height: '180px' }}>
                             {isLoadingRoute ? (
                                 <div className="absolute inset-0 bg-white/5 flex items-center justify-center z-10 backdrop-blur-sm">
@@ -391,9 +391,17 @@ export const DonorDetailSheet: React.FC<DonorDetailSheetProps> = ({ donor, isOpe
                                 </div>
                             )}
 
+                            {!userCoords && (
+                                <div className="absolute top-2 left-2 z-[999]" style={{ pointerEvents: 'none' }}>
+                                    <div className="bg-black/80 backdrop-blur-md border border-white/10 rounded-lg px-3 py-1.5 shadow-lg">
+                                        <p className="text-[10px] text-white/50">📍 Enable location for routing & ETA</p>
+                                    </div>
+                                </div>
+                            )}
+
                             <MapContainer
-                                center={[userCoords.lat, userCoords.lng]}
-                                zoom={12}
+                                center={[donor.latitude, donor.longitude]}
+                                zoom={13}
                                 style={{ height: '100%', width: '100%', background: '#0a0a0a' }}
                                 zoomControl={false}
                                 dragging={true}
@@ -404,8 +412,11 @@ export const DonorDetailSheet: React.FC<DonorDetailSheetProps> = ({ donor, isOpe
                                     url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
                                     attribution='&copy; CARTO'
                                 />
-                                <Marker position={[userCoords.lat, userCoords.lng]} icon={userIcon} />
                                 <Marker position={[donor.latitude, donor.longitude]} icon={donorIcon} />
+
+                                {userCoords && (
+                                    <Marker position={[userCoords.lat, userCoords.lng]} icon={userIcon} />
+                                )}
 
                                 {routeData.length > 0 && (
                                     <>
@@ -414,7 +425,6 @@ export const DonorDetailSheet: React.FC<DonorDetailSheetProps> = ({ donor, isOpe
                                             color="#3B82F6"
                                             weight={4}
                                             opacity={0.8}
-                                        // dashArray="8, 8"
                                         />
                                         <MapUpdater positions={routeData} />
                                     </>
