@@ -511,26 +511,23 @@ export const DonorDetailSheet: React.FC<DonorDetailSheetProps> = ({ donor, isOpe
                     </div>
 
                     {/* Action Buttons */}
-                    <div className="flex gap-3 flex-shrink-0">
+                    <div className="grid grid-cols-2 gap-3 flex-shrink-0">
                         <Button
                             size="lg"
-                            className="flex-1 h-14 rounded-2xl text-base font-semibold bg-green-600 hover:bg-green-700 text-white border-0 transition-colors duration-200"
+                            className="w-full h-14 rounded-xl text-base font-semibold bg-white/10 hover:bg-white/20 text-white border border-white/10 transition-colors duration-200"
+                            onClick={() => window.open(`tel:${donor.contact.replace(/[^0-9+]/g, '')}`, '_self')}
+                        >
+                            <Phone className="w-5 h-5 mr-2" />
+                            Call Donor
+                        </Button>
+
+                        <Button
+                            size="lg"
+                            className="w-full h-14 rounded-xl text-base font-semibold bg-green-600 hover:bg-green-700 text-white border-0 transition-colors duration-200"
                             onClick={handleWhatsApp}
                         >
                             <MessageCircle className="w-5 h-5 mr-2" />
                             WhatsApp
-                        </Button>
-                        <Button
-                            size="lg"
-                            className="flex-1 h-14 rounded-2xl text-base font-semibold text-white border-0 transition-colors duration-200"
-                            style={{ background: 'rgba(59,130,246,0.85)' }}
-                            onClick={() => {
-                                const phone = donor.contact.replace(/[^0-9+]/g, '');
-                                window.open(`tel:${phone}`, '_self');
-                            }}
-                        >
-                            <Phone className="w-5 h-5 mr-2" />
-                            Call Now
                         </Button>
                     </div>
                 </div>
