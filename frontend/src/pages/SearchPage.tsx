@@ -40,6 +40,9 @@ const SearchPage = () => {
   const { data: donors = [], isLoading, isError } = useQuery({
     queryKey: ["donors", userLocation?.lat, userLocation?.lng],
     queryFn: fetchDonors,
+    staleTime: 0,        // Always consider data stale → refetch on every visit
+    gcTime: 30000,       // Clear cache after 30 seconds
+    refetchOnWindowFocus: true,  // Refetch when user switches back to tab
   });
 
   // Auto-detect user city on page load (silent — no alert on failure)
