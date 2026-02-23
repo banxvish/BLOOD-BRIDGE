@@ -63,7 +63,11 @@ const RegisterPage = () => {
     };
 
     try {
-      const API_URL = import.meta.env.VITE_API_URL || "https://blood-bridge-production.up.railway.app/api/donors";
+      let envUrl = import.meta.env.VITE_API_URL;
+      if (envUrl && envUrl.endsWith('/')) envUrl = envUrl.slice(0, -1);
+      if (envUrl && !envUrl.endsWith('/api/donors')) envUrl += '/api/donors';
+
+      const API_URL = envUrl || "https://blood-bridge-production.up.railway.app/api/donors";
       const response = await fetch(API_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },

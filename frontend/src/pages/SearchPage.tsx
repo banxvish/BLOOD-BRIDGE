@@ -15,7 +15,11 @@ const bloodTypes = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
 // Fetch donors from the backend
 const fetchDonors = async ({ queryKey }: any) => {
   const [_key, lat, lng] = queryKey;
-  const BASE_URL = import.meta.env.VITE_API_URL || "https://blood-bridge-production.up.railway.app/api/donors";
+  let envUrl = import.meta.env.VITE_API_URL;
+  if (envUrl && envUrl.endsWith('/')) envUrl = envUrl.slice(0, -1);
+  if (envUrl && !envUrl.endsWith('/api/donors')) envUrl += '/api/donors';
+
+  const BASE_URL = envUrl || "https://blood-bridge-production.up.railway.app/api/donors";
   let url = BASE_URL;
   if (lat && lng) {
     url += `?lat=${lat}&lng=${lng}`;
