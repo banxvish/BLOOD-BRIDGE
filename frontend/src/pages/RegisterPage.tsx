@@ -63,7 +63,8 @@ const RegisterPage = () => {
     };
 
     try {
-      const response = await fetch("https://blood-bridge-production.up.railway.app/api/donors", {
+      const API_URL = import.meta.env.VITE_API_URL || "https://blood-bridge-production.up.railway.app/api/donors";
+      const response = await fetch(API_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
