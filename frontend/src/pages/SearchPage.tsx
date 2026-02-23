@@ -106,8 +106,23 @@ const SearchPage = () => {
   };
 
   const filteredDonors = donors.filter((donor: any) => {
+    // 1. Blood type filter
     if (selectedBloodType && selectedBloodType !== "all" && donor.bloodType !== selectedBloodType) return false;
+
+    // 2. Search query filter
     if (searchQuery && !donor.city.toLowerCase().includes(searchQuery.toLowerCase()) && !donor.name.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+
+    // 3. Auto-detected City filter (strict mode if location is enabled)
+    if (userCity) {
+      const uCity = userCity.toLowerCase();
+      const dCity = donor.city.toLowerCase();
+      // Allow if the donor's city is anywhere in the user's detected location string (e.g. "Bandra, Mumbai" includes "Mumbai")
+      // OR if the user's detected location is in the donor's city string
+      if (!uCity.includes(dCity) && !dCity.includes(uCity)) {
+        return false;
+      }
+    }
+
     return true;
   });
 
